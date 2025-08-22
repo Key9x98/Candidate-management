@@ -1,7 +1,7 @@
 -- Database Setup Script for HR Candidate Manager
 -- Run this in Supabase SQL Editor
 
--- 1. Create candidates table
+-- Create candidates table
 CREATE TABLE IF NOT EXISTS public.candidates (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -13,15 +13,10 @@ CREATE TABLE IF NOT EXISTS public.candidates (
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- 2. Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_candidates_user_id ON public.candidates(user_id);
-CREATE INDEX IF NOT EXISTS idx_candidates_status ON public.candidates(status);
-CREATE INDEX IF NOT EXISTS idx_candidates_created_at ON public.candidates(created_at);
-
--- 3. Enable Row Level Security (RLS)
+-- Enable Row Level Security (RLS)
 ALTER TABLE public.candidates ENABLE ROW LEVEL SECURITY;
 
--- 4. Create RLS policies
+-- Create RLS policies
 -- Policy: Users can only see their own candidates
 CREATE POLICY "Users can view own candidates" ON public.candidates
     FOR SELECT USING (auth.uid() = user_id);
@@ -38,21 +33,31 @@ CREATE POLICY "Users can update own candidates" ON public.candidates
 CREATE POLICY "Users can delete own candidates" ON public.candidates
     FOR DELETE USING (auth.uid() = user_id);
 
--- 5. Create function to update updated_at timestamp
+-- Policy bucket resumes
+INSERT INTO storage.buckets (id, name, public) VALUES ('resumes', 'resumes', true);
+
+-- Policies  storage
+CREATE POLICY "Users can upload resumes" ON storage.objects
+    FOR INSERT WITH CHECK (bucket_id = 'resumes' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+CREATE POLICY "Anyone can view resumes" ON storage.objects
+    FOR SELECT USING (bucket_id = 'resumes');
+
+CREATE POLICY "Users can delete own resumes" ON storage.objects
+    FOR DELETE USING (bucket_id = 'resumes' AND auth.uid()::text = (storage.foldername(name))[1]);
+
+-- 5. Create function to update updated_at timestamp    
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
+  NEW.updated_at = NOW();
+  RETURN NEW;
 END;
-$$ language 'plpgsql';
+$$ LANGUAGE plpgsql;
 
--- 6. Create trigger to automatically update updated_at
-CREATE TRIGGER update_candidates_updated_at 
-    BEFORE UPDATE ON public.candidates 
-    FOR EACH ROW 
-    EXECUTE FUNCTION update_updated_at_column();
+DROP TRIGGER IF EXISTS update_candidates_updated_at ON public.candidates;
 
--- 7. Grant necessary permissions
-GRANT ALL ON public.candidates TO authenticated;
-GRANT USAGE ON SCHEMA public TO authenticated;
+CREATE TRIGGER update_candidates_updated_at
+BEFORE UPDATE ON public.candidates
+FOR EACH ROW
+EXECUTE FUNCTION update_updated_at_column();

@@ -53,27 +53,16 @@ VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
 2. Tạo project mới
 3. Lấy `URL` và `anon key` từ Settings > API
 
-#### B. Setup Database
+#### B. Setup Database & Storage (tự động)
 1. Vào SQL Editor trong Supabase Dashboard
-2. Chạy script `database-setup.sql` để tạo bảng và policies
+2. Chạy script `database-setup.sql`
+   - Tạo bảng `candidates`, indexes, trigger `updated_at`
+   - Bật RLS và tạo đầy đủ policies cho bảng
+   - Tạo (hoặc cập nhật) bucket Storage `resumes` và các policies cần thiết
+   - Script an toàn để chạy lại nhiều lần (idempotent)
 
-#### C. Setup Storage
-1. Vào Storage trong Supabase Dashboard
-2. Tạo bucket mới tên `resumes`
-3. Set bucket policy:
-```sql
--- Allow authenticated users to upload files
-CREATE POLICY "Allow authenticated uploads" ON storage.objects
-FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND bucket_id = 'resumes');
-
--- Allow users to view their own files
-CREATE POLICY "Allow users to view own files" ON storage.objects
-FOR SELECT USING (auth.uid()::text = (storage.foldername(name))[1]);
-
--- Allow users to delete their own files
-CREATE POLICY "Allow users to delete own files" ON storage.objects
-FOR DELETE USING (auth.uid()::text = (storage.foldername(name))[1]);
-```
+#### C. (Tuỳ chọn) Kiểm tra Storage
+Script ở bước B đã tạo bucket `resumes` public-read và policies cho upload/delete theo `auth.uid()`. Bạn có thể kiểm tra trong mục Storage nếu cần.
 
 #### D. Deploy Edge Function
 1. Cài đặt Supabase CLI:
@@ -84,7 +73,6 @@ npm install -g supabase
 2. Login và link project:
 ```bash
 supabase login
-supabase link --project-ref your_project_ref
 ```
 
 3. Deploy function:
@@ -100,78 +88,49 @@ npm run dev
 ## 🏗️ Cấu trúc dự án
 
 ```
-src/
-├── components/          # React components
-│   ├── Auth.tsx        # Authentication wrapper
-│   ├── Dashboard.tsx   # Main dashboard
-│   ├── SignInForm.tsx  # Sign in form
-│   └── SignUpForm.tsx  # Sign up form
-├── contexts/           # React contexts
-│   └── AuthContext.tsx # Authentication context
-├── lib/               # Utilities and services
-│   ├── supabase.ts    # Supabase client & types
-│   └── candidateService.ts # Candidate business logic
-└── main.tsx          # App entry point
-```
-
-## 🔐 Bảo mật
-
-### Row Level Security (RLS)
-- Users chỉ có thể truy cập dữ liệu của chính mình
-- Policies được áp dụng cho tất cả operations (SELECT, INSERT, UPDATE, DELETE)
-
-### Storage Security
-- Files được tổ chức theo user ID
-- Users chỉ có thể upload/download files của chính mình
-
-### Edge Functions
-- JWT token validation
-- Input validation và sanitization
-- Error handling an toàn
-
-## 📊 Database Schema
-
-```sql
-candidates (
-  id UUID PRIMARY KEY,
-  user_id UUID REFERENCES auth.users(id),
-  full_name TEXT NOT NULL,
-  applied_position TEXT NOT NULL,
-  status TEXT DEFAULT 'New',
-  resume_url TEXT,
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW()
-)
-```
-
-## 🔄 Realtime Features
-
-- **Automatic Updates**: Dashboard tự động cập nhật khi có thay đổi
-- **Multi-user Support**: Nhiều users có thể làm việc đồng thời
-- **Efficient Sync**: Chỉ fetch lại data khi cần thiết
-
-## 🧪 Testing
-
-```bash
-# Run tests
-npm test
-
-# Run tests with coverage
-npm run test:coverage
-```
-
-## 🚀 Deployment
-
-### Vercel
-```bash
-npm install -g vercel
-vercel --prod
-```
-
-### Netlify
-```bash
-npm run build
-# Upload dist/ folder to Netlify
+Candidate-management/
+├── database-setup.sql
+├── index.html
+├── package.json
+├── vite.config.ts
+├── README.md
+├── src/
+│   ├── main.tsx
+│   ├── App.tsx
+│   ├── App.css
+│   ├── index.css
+│   ├── assets/
+│   │   └── react.svg
+│   ├── contexts/
+│   │   └── AuthContext.tsx
+│   ├── lib/
+│   │   ├── supabase.ts
+│   │   └── candidateService.ts
+│   ├── components/
+│   │   ├── ProtectedRoute.tsx
+│   │   └── dashboard/
+│   │       ├── CandidateForm.tsx
+│   │       ├── CandidateTable.tsx
+│   │       ├── CandidateTableRow.tsx
+│   │       ├── DashboardHeader.tsx
+│   │       ├── EmptyState.tsx
+│   │       ├── ErrorDisplay.tsx
+│   │       ├── LoadingSpinner.tsx
+│   │       └── Toolbar.tsx
+│   └── pages/
+│       ├── DashboardPage.tsx
+│       ├── LoginPage.tsx
+│       └── NotFoundPage.tsx
+├── public/
+│   └── vite.svg
+└── supabase/
+    ├── config.toml
+    └── functions/
+        ├── _shared/
+        │   └── cors.ts
+        └── add-candidate/
+            ├── deno.json
+            └── index.ts
 ```
 
 ## 📝 API Documentation
@@ -198,32 +157,5 @@ npm run build
 2. **RLS Policy Error**: Đảm bảo user đã authenticated
 3. **Storage Upload Error**: Kiểm tra bucket policies
 4. **Realtime Not Working**: Kiểm tra database triggers
-
-### Debug Mode
-```bash
-# Enable debug logging
-DEBUG=supabase:* npm run dev
-```
-
-## 🤝 Contributing
-
-1. Fork repository
-2. Tạo feature branch
-3. Commit changes
-4. Push to branch
-5. Tạo Pull Request
-
-## 📄 License
-
-MIT License - xem file LICENSE để biết thêm chi tiết.
-
-## 📞 Support
-
-Nếu gặp vấn đề, vui lòng:
-1. Kiểm tra documentation
-2. Tìm trong issues
-3. Tạo issue mới với thông tin chi tiết
-
----
 
 **Lưu ý**: Đây là dự án demo tuân thủ các yêu cầu kỹ thuật cụ thể. Để sử dụng production, vui lòng review và tăng cường bảo mật theo yêu cầu thực tế.
