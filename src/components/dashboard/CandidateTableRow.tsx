@@ -8,9 +8,16 @@ interface CandidateTableRowProps {
   index: number;
   onStatusUpdate: (id: string, status: CandidateStatus) => void;
   onDelete: (id: string) => void;
+  onEdit: (candidate: Candidate) => void;
 }
 
-const CandidateTableRow: React.FC<CandidateTableRowProps> = ({ candidate, index, onStatusUpdate, onDelete }) => (
+const CandidateTableRow: React.FC<CandidateTableRowProps> = ({ 
+  candidate, 
+  index, 
+  onStatusUpdate, 
+  onDelete, 
+  onEdit 
+}) => (
   <tr className="hover:bg-gray-50 transition-colors">
     <td className="px-4 py-3 text-sm text-gray-600 font-medium">{index + 1}</td>
     <td className="px-4 py-3 text-sm text-gray-900 font-semibold">{candidate.full_name}</td>
@@ -42,7 +49,7 @@ const CandidateTableRow: React.FC<CandidateTableRowProps> = ({ candidate, index,
     <td className="px-4 py-3 text-sm">
       <div className="flex space-x-2">
         <button
-          onClick={() => alert("Tính năng sửa đang được phát triển!")}
+          onClick={() => onEdit(candidate)}
           className="p-1.5 text-yellow-700 bg-yellow-100 rounded-md hover:bg-yellow-200 transition-colors"
         >
           <Edit3 className="w-4 h-4" />

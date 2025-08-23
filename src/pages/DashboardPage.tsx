@@ -14,6 +14,7 @@ import CandidateForm from "../components/dashboard/CandidateForm"
 import CandidateTable from "../components/dashboard/CandidateTable"
 import LoadingSpinner from "../components/dashboard/LoadingSpinner"
 import DashboardHeader from "../components/dashboard/DashboardHeader"
+import EditCandidateModal from "../components/dashboard/EditCandidateModal"
 
 const DashboardPage: React.FC = () => {
   const { signOut, user } = useAuth();
@@ -23,6 +24,10 @@ const DashboardPage: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<CandidateStatus | "">("");
   const [searchQuery, setSearchQuery] = useState("");
   const [error, setError] = useState<string | null>(null);
+
+  // Edit modal states
+  const [editingCandidate, setEditingCandidate] = useState<Candidate | null>(null);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   // Form states
   const [fullName, setFullName] = useState("");
@@ -119,6 +124,21 @@ const DashboardPage: React.FC = () => {
     }
   };
 
+  // Handle candidate edit
+  const handleEditCandidate = (candidate: Candidate) => {
+    setEditingCandidate(candidate);
+    setShowEditModal(true);
+  };
+
+  // Handle candidate update
+  const handleUpdateCandidate = (updatedCandidate: Candidate) => {
+    setCandidates(prev => 
+      prev.map(c => c.id === updatedCandidate.id ? updatedCandidate : c)
+    );
+    setShowEditModal(false);
+    setEditingCandidate(null);
+  };
+
   // Handle search
  const handleSearch = async () => {
   if (!searchQuery.trim()) {
@@ -136,7 +156,6 @@ const DashboardPage: React.FC = () => {
     setLoading(false);
   }
 };
-
 
   // Filter candidates by status
   const filteredCandidates = statusFilter
@@ -182,7 +201,21 @@ const DashboardPage: React.FC = () => {
           candidates={filteredCandidates}
           onStatusUpdate={handleStatusUpdate}
           onDelete={handleDeleteCandidate}
+          onEdit={handleEditCandidate}
         />
+
+        {/* Edit Candidate Modal */}
+        {editingCandidate && (
+          <EditCandidateModal
+            candidate={editingCandidate}
+            isOpen={showEditModal}
+            onClose={() => {
+              setShowEditModal(false);
+              setEditingCandidate(null);
+            }}
+            onUpdate={handleUpdateCandidate}
+          />
+        )}
       </main>
     </div>
   );

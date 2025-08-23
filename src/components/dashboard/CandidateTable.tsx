@@ -8,9 +8,15 @@ interface CandidateTableProps {
   candidates: Candidate[];
   onStatusUpdate: (id: string, status: CandidateStatus) => void;
   onDelete: (id: string) => void;
+  onEdit: (candidate: Candidate) => void;
 }
 
-const CandidateTable: React.FC<CandidateTableProps> = ({ candidates, onStatusUpdate, onDelete }) => (
+const CandidateTable: React.FC<CandidateTableProps> = ({ 
+  candidates, 
+  onStatusUpdate, 
+  onDelete, 
+  onEdit 
+}) => (
   <div className="bg-white border border-gray-300 rounded-lg shadow-sm overflow-hidden">
     <div className="overflow-x-auto">
       <table className="w-full">
@@ -36,6 +42,7 @@ const CandidateTable: React.FC<CandidateTableProps> = ({ candidates, onStatusUpd
                 index={index}
                 onStatusUpdate={onStatusUpdate}
                 onDelete={onDelete}
+                onEdit={onEdit}
               />
             ))
           )}

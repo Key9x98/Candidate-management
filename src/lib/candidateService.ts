@@ -132,6 +132,81 @@ export class CandidateService {
   }
 
   /**
+   * Update candidate information
+   */
+  static async updateCandidate(
+    candidateId: string, 
+    updateData: {
+      full_name?: string;
+      applied_position?: string;
+      created_at?: string;
+      resume_file?: File | null;
+    }
+  ): Promise<Candidate> {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get current candidate data
+      const currentCandidate = await this.getCandidateById(candidateId);
+      if (!currentCandidate) {
+        throw new Error('Candidate not found');
+      }
+
+      let resumeUrl = currentCandidate.resume_url;
+
+      // Handle resume file update
+      if (updateData.resume_file) {
+        // Delete old resume if exists
+        if (currentCandidate.resume_url) {
+          await this.deleteResume(currentCandidate.resume_url);
+        }
+        
+        // Upload new resume
+        resumeUrl = await this.uploadResume(updateData.resume_file, user.id);
+      }
+
+      // Prepare update data
+      const updatePayload: any = {
+        updated_at: new Date().toISOString()
+      };
+
+      if (updateData.full_name !== undefined) {
+        updatePayload.full_name = updateData.full_name;
+      }
+      if (updateData.applied_position !== undefined) {
+        updatePayload.applied_position = updateData.applied_position;
+      }
+      if (updateData.created_at !== undefined) {
+        updatePayload.created_at = updateData.created_at;
+      }
+      if (resumeUrl !== currentCandidate.resume_url) {
+        updatePayload.resume_url = resumeUrl;
+      }
+
+      // Update candidate in database
+      const { data, error } = await supabase
+        .from('candidates')
+        .update(updatePayload)
+        .eq('id', candidateId)
+        .eq('user_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(`Failed to update candidate: ${error.message}`);
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error updating candidate:', error);
+      throw error;
+    }
+  }
+
+  /**
    * Upload resume file to Supabase Storage
    */
 // service/candidateService.ts
