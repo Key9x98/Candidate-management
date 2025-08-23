@@ -11,6 +11,7 @@ Hệ thống quản lý hồ sơ ứng viên được xây dựng với React + 
 - **Row Level Security**: Bảo mật dữ liệu theo từng user
 - **Edge Functions**: Xử lý logic backend an toàn
 - **Excel-like Interface**: Giao diện dạng bảng dễ sử dụng
+- **Advanced Editing**: Sửa thông tin ứng viên với modal đẹp mắt
 
 ## 🛠️ Tech Stack
 
@@ -19,6 +20,7 @@ Hệ thống quản lý hồ sơ ứng viên được xây dựng với React + 
 - **Styling**: Tailwind CSS
 - **State Management**: React Context + Hooks
 - **Real-time**: Supabase Realtime
+- **Icons**: Lucide React
 
 ## 📋 Yêu cầu hệ thống
 
@@ -89,49 +91,92 @@ npm run dev
 
 ```
 Candidate-management/
-├── database-setup.sql
-├── index.html
-├── package.json
-├── vite.config.ts
-├── README.md
-├── src/
-│   ├── main.tsx
-│   ├── App.tsx
-│   ├── App.css
-│   ├── index.css
-│   ├── assets/
-│   │   └── react.svg
-│   ├── contexts/
-│   │   └── AuthContext.tsx
-│   ├── lib/
-│   │   ├── supabase.ts
-│   │   └── candidateService.ts
-│   ├── components/
-│   │   ├── ProtectedRoute.tsx
-│   │   └── dashboard/
-│   │       ├── CandidateForm.tsx
-│   │       ├── CandidateTable.tsx
-│   │       ├── CandidateTableRow.tsx
-│   │       ├── DashboardHeader.tsx
-│   │       ├── EmptyState.tsx
-│   │       ├── ErrorDisplay.tsx
-│   │       ├── LoadingSpinner.tsx
-│   │       └── Toolbar.tsx
-│   └── pages/
-│       ├── DashboardPage.tsx
-│       ├── LoginPage.tsx
-│       └── NotFoundPage.tsx
-├── public/
-│   └── vite.svg
-└── supabase/
-    ├── config.toml
-    └── functions/
-        ├── _shared/
-        │   └── cors.ts
-        └── add-candidate/
-            ├── deno.json
-            └── index.ts
+├── 📁 Root
+│   ├── 📄 database-setup.sql          # Script thiết lập cơ sở dữ liệu Supabase
+│   ├── 📄 package.json                # Quản lý dependencies và scripts
+│   ├── 📄 vite.config.ts              # Cấu hình build tool Vite
+│   ├── 📄 tsconfig.json               # Cấu hình TypeScript compiler
+│   ├── 📄 .gitignore                  # Quy tắc bỏ qua file Git
+│   └── 📄 README.md                   # Tài liệu hướng dẫn dự án
+│
+├── 📁 src/                            # Mã nguồn chính của ứng dụng
+│   ├── 📄 main.tsx                    # Điểm khởi đầu của ứng dụng React
+│   ├── 📄 App.tsx                     # Component chính của ứng dụng
+│   ├── 📄 App.css                     # Styles riêng cho App component
+│   ├── 📄 index.css                   # Styles toàn cục
+│   ├── 📄 vite-env.d.ts              # Khai báo TypeScript cho Vite
+│   │
+│   ├── 📁 assets/                     # Tài nguyên tĩnh
+│   │   └── 📄 react.svg               # Logo React
+│   │
+│   ├── 📁 contexts/                   # React Context providers
+│   │   └── 📄 AuthContext.tsx         # Quản lý trạng thái đăng nhập
+│   │
+│   ├── 📁 lib/                        # Thư viện tiện ích và services
+│   │   ├── 📄 supabase.ts             # Client Supabase và định nghĩa types
+│   │   └── 📄 candidateService.ts     # Logic nghiệp vụ xử lý ứng viên
+│   │
+│   ├── 📁 components/                 # Các component có thể tái sử dụng
+│   │   ├── 📄 ProtectedRoute.tsx      # Component bảo vệ route
+│   │   └── 📁 dashboard/              # Các component dành riêng cho dashboard
+│   │       ├── 📄 CandidateForm.tsx   # Form thêm ứng viên mới
+│   │       ├── 📄 CandidateTable.tsx  # Bảng hiển thị danh sách ứng viên
+│   │       ├── 📄 CandidateTableRow.tsx # Mỗi dòng trong bảng ứng viên
+│   │       ├── 📄 EditCandidateModal.tsx # Modal sửa thông tin ứng viên
+│   │       ├── 📄 DashboardHeader.tsx # Header của trang dashboard
+│   │       ├── 📄 EmptyState.tsx      # Hiển thị khi không có dữ liệu
+│   │       ├── 📄 ErrorDisplay.tsx    # Hiển thị thông báo lỗi
+│   │       ├── 📄 LoadingSpinner.tsx  # Hiển thị trạng thái đang tải
+│   │       └── 📄 Toolbar.tsx         # Thanh công cụ với tìm kiếm và lọc
+│   │
+│   └── 📁 pages/                      # Các component trang
+│       ├── 📄 DashboardPage.tsx       # Trang chính quản lý dashboard
+│       ├── 📄 LoginPage.tsx           # Trang đăng nhập
+│       └── 📄 NotFoundPage.tsx        # Trang 404 không tìm thấy
+│
+├── 📁 public/                         # Tài nguyên công khai
+│   └── 📄 vite.svg                    # Logo Vite
+│
+└── 📁 supabase/                       # Cấu hình Supabase
+    ├── 📄 config.toml                 # Cấu hình project Supabase
+    └── 📁 functions/                  # Các Edge Functions
+        ├── 📁 _shared/                 # Tiện ích dùng chung
+        │   └── 📄 cors.ts              # Cấu hình CORS
+        └── 📁 add-candidate/           # Function thêm ứng viên
+            ├── 📄 deno.json            # Cấu hình Deno runtime
+            └── 📄 index.ts             # Mã nguồn function
 ```
+
+## 🔍 Chi tiết các thành phần chính
+
+### 📁 **lib/** - Business Logic Layer
+- **`supabase.ts`**: Khởi tạo Supabase client, định nghĩa types và constants
+- **`candidateService.ts`**: Chứa tất cả logic xử lý candidates (CRUD, upload file, realtime)
+
+### 📁 **components/dashboard/** - Dashboard Components
+- **`CandidateForm.tsx`**: Form thêm ứng viên mới với upload CV
+- **`CandidateTable.tsx`**: Bảng hiển thị danh sách ứng viên
+- **`CandidateTableRow.tsx`**: Mỗi dòng trong bảng với actions (sửa, xóa, thay đổi status)
+- **`EditCandidateModal.tsx`**: Modal sửa thông tin ứng viên (họ tên, vị trí, ngày, CV)
+- **`Toolbar.tsx`**: Thanh công cụ với search, filter và nút thêm mới
+- **`DashboardHeader.tsx`**: Header với thông tin user và nút đăng xuất
+
+### 📁 **pages/** - Page Components
+- **`DashboardPage.tsx`**: Trang chính quản lý state và logic của toàn bộ dashboard
+- **`LoginPage.tsx`**: Trang đăng nhập với Supabase Auth
+- **`NotFoundPage.tsx`**: Trang 404
+
+### 📁 **contexts/** - State Management
+- **`AuthContext.tsx`**: Quản lý authentication state và user session
+
+## 🚀 Tính năng mới: Sửa thông tin ứng viên
+
+### Modal sửa thông tin ứng viên
+- **Sửa họ và tên**: Cập nhật tên ứng viên
+- **Sửa vị trí**: Thay đổi vị trí ứng tuyển
+- **Sửa ngày ứng tuyển**: Điều chỉnh ngày ứng viên nộp hồ sơ
+- **Thay thế CV**: Upload CV mới hoặc giữ nguyên CV cũ
+
 
 ## 📝 API Documentation
 
@@ -149,13 +194,23 @@ Candidate-management/
 }
 ```
 
-## 🐛 Troubleshooting
+### Candidate Service Methods
+- **`fetchCandidates()`**: Lấy danh sách ứng viên
+- **`addCandidate()`**: Thêm ứng viên mới
+- **`updateCandidate()`**: Cập nhật thông tin ứng viên
+- **`updateCandidateStatus()`**: Thay đổi trạng thái
+- **`deleteCandidate()`**: Xóa ứng viên
+- **`uploadResume()`**: Upload CV lên Storage
+- **`deleteResume()`**: Xóa CV khỏi Storage
 
-### Common Issues
+## 🐛 Xử lý sự cố
 
-1. **CORS Error**: Kiểm tra Edge Function CORS headers
-2. **RLS Policy Error**: Đảm bảo user đã authenticated
-3. **Storage Upload Error**: Kiểm tra bucket policies
-4. **Realtime Not Working**: Kiểm tra database triggers
+### Các vấn đề thường gặp
+
+1. **Lỗi CORS**: Kiểm tra headers CORS trong Edge Function
+2. **Lỗi RLS Policy**: Đảm bảo user đã được xác thực
+3. **Lỗi Upload Storage**: Kiểm tra bucket policies
+4. **Realtime không hoạt động**: Kiểm tra database triggers
+5. **Modal sửa không mở**: Kiểm tra import và props của EditCandidateModal
 
 **Lưu ý**: Đây là dự án demo tuân thủ các yêu cầu kỹ thuật cụ thể. Để sử dụng production, vui lòng review và tăng cường bảo mật theo yêu cầu thực tế.
